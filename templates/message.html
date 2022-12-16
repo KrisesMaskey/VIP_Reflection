@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <title>Flask Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}">
+    <title>Reflection Webpage</title>
+</head>
+<body>
+    <div class="topnav">
+        <div class="navbar">
+            <a id='muji' href="/">Reflection</a>
+            <a>&emsp;|&emsp;</a>
+            <a class="active" href="message" id="muji">Message</a>
+        </div>
+    </div>
+    <div class="mes_page">
+       <form id="form">
+        <input type="text" id='user_input' placeholder="Your Message" action=""/>
+        <input id='user_submit' type="submit" value="Submit" />
+        </form>
+    </div>
+    <div id="mes_display">
+    </div>
+    <script>
+        function createElement(val){
+            const currDiv = document.getElementById('mes_display');
+            while (currDiv.firstChild) {
+                currDiv.removeChild(currDiv.firstChild);
+            }
+            val.data.map((v)=>{
+                const date = v.timestamp.split(' ')
+                const newDiv = document.createElement('div');
+                const textDiv = document.createElement('div');
+                textDiv.className = 'text_div';
+                newDiv.className = 'message_display';
+                const mes = document.createElement('p');
+                const time = document.createElement('p');
+                mes.appendChild(document.createTextNode(v.message)); mes.className = 'text';
+                time.appendChild(document.createTextNode(date[0] +' '+ date[1] +' '+ date[2])); time.className = 'timestamp';
+                textDiv.appendChild(mes);
+                newDiv.appendChild(textDiv);
+                newDiv.appendChild(time);
+                currDiv.appendChild(newDiv);
+            })
+        }
+        
+        window.addEventListener("DOMContentLoaded", () => {
+            // DOM ready! Images, frames, and other subresources are still downloading.
+            fetch('http://localhost:3005/getpost', {
+                method: 'GET'
+            }).then((res)=>res.json()).then((val)=>{
+                createElement(val);
+            })
+        });
+
+        document.getElementById('user_submit').addEventListener('click', (e)=>{
+            e.preventDefault();
+            user_text = document.getElementById('user_input').value;
+            if(user_text != ''){
+                document.getElementById('form').reset();
+                fetch('http://localhost:3005/post',{
+                    method: 'POST',
+                    body: JSON.stringify({message: user_text})
+                }).then((res)=>res.json()).then((val)=>{
+                    fetch('http://localhost:3005/getpost', {
+                        method: 'GET'
+                    }).then((res)=>res.json()).then((val)=>{
+                        createElement(val);
+                    })
+                })
+            }
+        })
+    </script>
+</body>
+</html>
+
